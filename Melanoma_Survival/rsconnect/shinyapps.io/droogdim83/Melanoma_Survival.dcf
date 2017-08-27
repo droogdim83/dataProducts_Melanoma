@@ -1,0 +1,12 @@
+name: Melanoma_Survival
+title: Melanoma_Survival
+username:
+account: droogdim83
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 207756
+bundleId: 955962
+url: https://droogdim83.shinyapps.io/Melanoma_Survival/
+when: 1503799965.73593
+asMultiple: FALSE
+asStatic: FALSE

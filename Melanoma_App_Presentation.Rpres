@@ -1,0 +1,129 @@
+<style type="text/css">
+
+body, td {
+   font-size: 14px;
+}
+code.r{
+  font-size: 10px;
+}
+pre {
+  font-size: 20px
+}
+</style>
+
+Oncology for Dummies!
+========================================================
+author: Weston Carloss
+font-family: 'Helvetica'
+date: August 26, 2017
+width: 1440
+height: 900
+  
+Background
+========================================================
+class:  text/css
+width: 1440
+height: 900
+
+**Purpose**: Provide a simple app to predict survival time for patients with 
+malignant melanoma
+
+**Training Data Source**: *"Melanoma"* dataset from R *MASS* package. Models 
+survival time (in days) for 205 melatoma patients in Denmark from 1962 - 1977 
+using the following predictors: 
+  
+- (Anticipated) Patient Health Outcome  
+- Patient Gender  
+- Patient Age at Time of Diagnosis  
+- Year of Tumor Surgery  
+- Tumor Thickness (Breslow's Thickness)  
+- Presence/Absence of Tumor Ulceration  
+  
+App Benefits & Limitations
+========================================================
+width: 1440
+height: 900
+
+App Benefits 
+  
+- Easy to use  
+- Small, lightweight  
+- Offers insight into potential benefits of machine learning in cancer outcome prediction
+- Built-in documentation  
+
+***
+Limitations 
+  
+- Training data limitations  
+    + Small sample size  
+    + Based on a single country  
+- Greatly oversimplifies cancer prediction  
+
+Simple Multi-Tab GUI
+====================================
+
+![Application UI](App_UI.png)  
+
+Model Summary
+========================================================
+class:  text/css
+width: 1440
+height: 900
+
+```{r linear_model, include=FALSE}
+
+##  Load required packages
+library(shiny)
+library(MASS)
+library(caret)
+
+##  Load Melanoma dataset
+data("Melanoma")
+
+##  Convert numeric/int variables into factors
+Melanoma$status <- as.factor(Melanoma$status)
+levels(Melanoma$status) <- c("Died_Melanoma", "Alive", "Died_Other_Causes")
+
+Melanoma$sex <- as.factor(Melanoma$sex)
+levels(Melanoma$sex) <- c("Female","Male")
+
+Melanoma$year <- as.factor(Melanoma$year)
+
+Melanoma$ulcer <- as.factor(Melanoma$ulcer)
+levels(Melanoma$ulcer) <- c("Absence", "Presence")
+
+##  Fit a linear model to the Melanoma survival dataset from the MASS package
+
+##  Create Dummy Variables and remove colinearity
+dummies <- dummyVars(~ ., data = Melanoma, fullRank = TRUE)
+MelanTrans <- data.frame(predict(dummies, newdata = Melanoma))
+MelanTrans$time <- Melanoma$time
+MelanTrans$age <- Melanoma$age
+MelanTrans$thickness <- Melanoma$thickness
+
+##  Remove Near Zero Variance Columns
+nzv_cols <- nearZeroVar(MelanTrans)
+if(length(nzv_cols) > 0) MelanTrans <- MelanTrans[, -nzv_cols]
+    
+##  Split the data into Training and Test sets
+inTrain <- createDataPartition(y = MelanTrans$time, p = 0.7, list = FALSE)
+training <- MelanTrans[inTrain,] 
+testing <- MelanTrans[-inTrain,]
+
+##  Set the seed for training the model
+set.seed(123)
+
+##  Train linear model
+melanModFit<- train(time ~ ., data = training, method = "lm", 
+                    trControl = trainControl(method = "cv", number = 10), 
+                    preProcess = c("center", "scale"))
+summary(melanModFit)
+```  
+  
+```{r model_display, echo = FALSE, }
+##  Train linear model
+melanModFit<- train(time ~ ., data = training, method = "lm", 
+                    trControl = trainControl(method = "cv", number = 10), 
+                    preProcess = c("center", "scale"))
+summary(melanModFit)
+```  
